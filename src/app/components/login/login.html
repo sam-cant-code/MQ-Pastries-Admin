@@ -1,0 +1,112 @@
+<div class="min-h-screen flex items-center justify-center bg-cream-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8 bg-white p-10 shadow-2xl rounded-sm border border-cream-200">
+    <div>
+      <h2 class="mt-2 text-center text-3xl font-bold tracking-tight text-espresso-900">
+        MQ Pastries Admin
+      </h2>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        {{ loginStep === 'CREDENTIALS' ? 'Sign in to manage your boutique' : 
+           (loginStep === 'OTP' ? 'Enter the OTP sent to your email' : 
+           (loginStep === 'FORGOT_PASSWORD_SUCCESS' ? 'Check your inbox' : 'Enter your email to reset your password')) }}
+      </p>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+      <div class="flex">
+        <div class="ml-3">
+          <p class="text-sm text-red-700">{{ errorMessage }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: CREDENTIALS -->
+    <form *ngIf="loginStep === 'CREDENTIALS'" [formGroup]="credentialsForm" (ngSubmit)="onLoginSubmit()" class="mt-8 space-y-6">
+      <div class="-space-y-px rounded-md shadow-sm">
+        <div>
+          <label for="email-address" class="sr-only">Email address</label>
+          <input id="email-address" formControlName="email" type="email" autocomplete="email" required class="relative block w-full rounded-t-md border-0 py-3 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-caramel-500 sm:text-sm sm:leading-6" placeholder="Email address">
+        </div>
+        <div>
+          <label for="password" class="sr-only">Password</label>
+          <input id="password" formControlName="password" type="password" autocomplete="current-password" required class="relative block w-full rounded-b-md border-0 py-3 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-caramel-500 sm:text-sm sm:leading-6" placeholder="Password">
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <input id="remember-me" formControlName="remember" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-caramel-500 focus:ring-caramel-500">
+          <label for="remember-me" class="ml-2 block text-sm text-gray-900">Remember me</label>
+        </div>
+
+        <div class="text-sm leading-6">
+          <a href="#" (click)="onForgotPassword($event)" class="font-semibold text-caramel-600 hover:text-caramel-500">Forgot password?</a>
+        </div>
+      </div>
+
+      <!-- CAPTCHA -->
+      <div class="flex justify-center min-h-[65px]">
+        <!-- Container for Cloudflare Turnstile -->
+        <div id="turnstile-container"></div>
+      </div>
+
+      <div>
+        <button type="submit" [disabled]="credentialsForm.invalid || !captchaToken || isLoading" class="group relative flex w-full justify-center rounded-sm bg-espresso-900 py-3 px-3 text-sm font-semibold text-white hover:bg-espresso-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso-900 transition-colors disabled:opacity-50">
+          <span *ngIf="isLoading">Authenticating...</span>
+          <span *ngIf="!isLoading">Sign in</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- STEP 2: OTP -->
+    <form *ngIf="loginStep === 'OTP'" [formGroup]="otpForm" (ngSubmit)="onOtpSubmit()" class="mt-8 space-y-6">
+      <div>
+        <label for="otpCode" class="sr-only">One-Time Password</label>
+        <input id="otpCode" formControlName="otpCode" type="text" autocomplete="off" required maxlength="6" class="relative block w-full rounded-md border-0 py-3 px-3 text-center text-2xl tracking-widest text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-caramel-500 sm:leading-6" placeholder="------">
+      </div>
+
+      <div>
+        <button type="submit" [disabled]="otpForm.invalid || isLoading" class="group relative flex w-full justify-center rounded-sm bg-caramel-600 py-3 px-3 text-sm font-semibold text-white hover:bg-caramel-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-caramel-600 transition-colors disabled:opacity-50">
+          <span *ngIf="isLoading">Verifying...</span>
+          <span *ngIf="!isLoading">Verify OTP</span>
+        </button>
+      </div>
+      <div class="text-center text-sm">
+        <a href="#" (click)="loginStep = 'CREDENTIALS'" class="text-gray-500 hover:text-gray-700">Back to Login</a>
+      </div>
+    </form>
+
+
+
+    <!-- STEP 4: FORGOT PASSWORD -->
+    <form *ngIf="loginStep === 'FORGOT_PASSWORD'" [formGroup]="forgotPasswordForm" (ngSubmit)="onForgotPasswordSubmit()" class="mt-8 space-y-6">
+      <div>
+        <label for="reset-email" class="sr-only">Email address</label>
+        <input id="reset-email" formControlName="email" type="email" autocomplete="email" required class="relative block w-full rounded-md border-0 py-3 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-caramel-500 sm:text-sm sm:leading-6" placeholder="Email address">
+      </div>
+
+      <div>
+        <button type="submit" [disabled]="forgotPasswordForm.invalid || isLoading" class="group relative flex w-full justify-center rounded-sm bg-espresso-900 py-3 px-3 text-sm font-semibold text-white hover:bg-espresso-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-espresso-900 transition-colors disabled:opacity-50">
+          <span *ngIf="isLoading">Sending...</span>
+          <span *ngIf="!isLoading">Send Reset Link</span>
+        </button>
+      </div>
+      <div class="text-center text-sm">
+        <a href="#" (click)="loginStep = 'CREDENTIALS'" class="text-gray-500 hover:text-gray-700">Back to Login</a>
+      </div>
+    </form>
+
+    <!-- STEP 5: FORGOT PASSWORD SUCCESS -->
+    <div *ngIf="loginStep === 'FORGOT_PASSWORD_SUCCESS'" class="mt-8 space-y-6 text-center">
+      <div class="rounded-full bg-green-100 p-3 mx-auto w-16 h-16 flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      </div>
+      <p class="text-sm text-gray-600">If an account exists with that email, we have sent a password reset link.</p>
+      <div class="pt-4">
+        <button type="button" (click)="loginStep = 'CREDENTIALS'" class="group relative flex w-full justify-center rounded-sm bg-gray-100 py-3 px-3 text-sm font-semibold text-gray-900 hover:bg-gray-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-300 transition-colors">
+          Return to Login
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

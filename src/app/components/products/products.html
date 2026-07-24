@@ -1,0 +1,239 @@
+<div>
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 font-serif">Products</h1>
+    <button (click)="openModal()" class="bg-espresso-900 text-white px-4 py-2 rounded-sm text-sm font-medium hover:bg-espresso-800 transition-colors shadow-sm">
+      + Add Pastry
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading()" class="flex justify-center py-10">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-caramel-500"></div>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading()" class="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price / Unit</th>
+          <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngIf="products().length === 0">
+          <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+            No products found. Click "Add Pastry" to create one.
+          </td>
+        </tr>
+        <tr *ngFor="let product of products()">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="h-10 w-10 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center">
+              <img *ngIf="product.image" [src]="product.image" alt="" class="h-full w-full object-cover">
+              <span *ngIf="!product.image" class="text-xs text-gray-400">N/A</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+            <div class="text-xs text-gray-500 truncate max-w-xs">{{ product.description }}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-caramel-100 text-caramel-800">
+              {{ product.category }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            ₹{{ product.price }} <span class="text-xs text-gray-500">{{ product.unit }}</span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+            <button (click)="openModal(product)" class="text-caramel-600 hover:text-caramel-900">Edit</button>
+            <button (click)="deleteProduct(product.id!)" class="text-red-600 hover:text-red-900">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div *ngIf="isModalOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+      
+      <!-- Background overlay -->
+      <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" (click)="closeModal()"></div>
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+      <!-- Modal panel -->
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" (paste)="onPaste($event)">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4 font-serif" id="modal-title">
+              {{ isEditMode ? 'Edit Pastry' : 'Add New Pastry' }}
+            </h3>
+            <div class="space-y-4">
+              
+              <!-- Name -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Name</label>
+                <input type="text" formControlName="name" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border">
+              </div>
+
+              <!-- Category & Price -->
+              <div class="flex gap-4">
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-700">Category</label>
+                  <input type="text" formControlName="category" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border" placeholder="e.g. Brownies">
+                </div>
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-700">Price (₹)</label>
+                  <input type="number" formControlName="price" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border">
+                </div>
+              </div>
+
+              <!-- Unit -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Unit Label</label>
+                <input type="text" formControlName="unit" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border" placeholder="e.g. per 1/2kg or per piece">
+              </div>
+
+              <!-- Image Upload Zone -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Main Product Image</label>
+                <div 
+                  class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md relative group hover:border-caramel-500 transition-colors cursor-pointer"
+                  [class.bg-gray-50]="isDragOver"
+                  (dragover)="onDragOver($event)"
+                  (dragleave)="onDragLeave($event)"
+                  (drop)="onDrop($event)"
+                  (click)="fileInput.click()">
+                  
+                  <input type="file" #fileInput (change)="onFileSelected($event)" class="hidden" accept="image/*">
+                  
+                  <div class="space-y-1 text-center" *ngIf="!productForm.get('image')?.value && !isUploadingImage()">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 group-hover:text-caramel-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="flex text-sm text-gray-600 justify-center">
+                      <span class="relative cursor-pointer rounded-md font-medium text-caramel-600 hover:text-caramel-500 focus-within:outline-none">
+                        Upload a file
+                      </span>
+                      <p class="pl-1">or drag and drop</p>
+                    </div>
+                    <p class="text-xs text-gray-500">
+                      PNG, JPG, GIF (or paste from clipboard)
+                    </p>
+                  </div>
+                  
+                  <!-- Uploading State -->
+                  <div *ngIf="isUploadingImage()" class="flex flex-col items-center justify-center py-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-caramel-500 mb-2"></div>
+                    <p class="text-sm text-gray-500">Uploading...</p>
+                  </div>
+
+                  <!-- Image Preview -->
+                  <div *ngIf="productForm.get('image')?.value && !isUploadingImage()" class="relative">
+                    <img [src]="productForm.get('image')?.value" class="h-32 w-32 object-cover rounded shadow-sm border border-gray-200">
+                    <button type="button" (click)="removeImage($event)" class="absolute -top-2 -right-2 bg-white rounded-full text-red-500 hover:text-red-700 shadow-sm border border-gray-200 p-1 z-10">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Gallery Images -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Gallery Images</label>
+                <div class="flex flex-wrap gap-4 mb-2">
+                  <div *ngFor="let img of productForm.get('galleryImages')?.value; let i = index" class="relative">
+                    <img [src]="img" class="h-24 w-24 object-cover rounded shadow-sm border border-gray-200">
+                    <button type="button" (click)="removeGalleryImage(i)" class="absolute -top-2 -right-2 bg-white rounded-full text-red-500 hover:text-red-700 shadow-sm border border-gray-200 p-1 z-10">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <!-- Upload Button -->
+                  <div class="h-24 w-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center cursor-pointer hover:border-caramel-500 group" (click)="galleryFileInput.click()">
+                    <input type="file" #galleryFileInput (change)="onGalleryFileSelected($event)" class="hidden" accept="image/*">
+                    <div *ngIf="isUploadingGalleryImage()" class="animate-spin rounded-full h-5 w-5 border-b-2 border-caramel-500"></div>
+                    <svg *ngIf="!isUploadingGalleryImage()" class="h-8 w-8 text-gray-400 group-hover:text-caramel-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-500">Add extra angles or detail shots.</p>
+              </div>
+
+              <!-- Group Name -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Group Name</label>
+                <input type="text" formControlName="groupName" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border" placeholder="e.g. Fudgy Brownies">
+                <p class="text-xs text-gray-500 mt-1">If set, groups this with other products of the same group name.</p>
+              </div>
+
+              <!-- Description -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea formControlName="description" rows="3" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border"></textarea>
+              </div>
+
+              <!-- Eggless Option -->
+              <div class="flex items-center mt-4">
+                <input id="hasEgglessOption" type="checkbox" formControlName="hasEgglessOption" class="h-4 w-4 text-caramel-600 focus:ring-caramel-500 border-gray-300 rounded">
+                <label for="hasEgglessOption" class="ml-2 block text-sm text-gray-900">
+                  Allow customers to choose an "Eggless" version of this pastry
+                </label>
+              </div>
+
+              <!-- Variants Array -->
+              <div class="mt-6 border-t border-gray-200 pt-4">
+                <div class="flex justify-between items-center mb-2">
+                  <label class="block text-sm font-medium text-gray-700">Custom Size / Quantity Variants</label>
+                  <button type="button" (click)="addVariant()" class="text-xs font-medium text-caramel-600 hover:text-caramel-800 bg-caramel-50 px-2 py-1 rounded border border-caramel-200">
+                    + Add Variant
+                  </button>
+                </div>
+                <p class="text-xs text-gray-500 mb-3">If you add custom variants (e.g. 1/2 kg, 1 kg), the base price/unit above acts as a fallback.</p>
+                
+                <div formArrayName="variants" class="space-y-3">
+                  <div *ngFor="let variant of variantsArray.controls; let i=index" [formGroupName]="i" class="flex items-center gap-3 bg-gray-50 p-3 rounded-md border border-gray-200">
+                    <div class="flex-1">
+                      <label class="block text-xs font-medium text-gray-500 mb-1">Variant Name (e.g. 1/2 kg)</label>
+                      <input type="text" formControlName="name" class="focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border">
+                    </div>
+                    <div class="flex-1">
+                      <label class="block text-xs font-medium text-gray-500 mb-1">Price (₹)</label>
+                      <input type="number" formControlName="price" class="focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border">
+                    </div>
+                    <button type="button" (click)="removeVariant(i)" class="mt-5 text-red-500 hover:text-red-700 p-2">
+                      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div *ngIf="variantsArray.length === 0" class="text-center py-4 bg-gray-50 rounded-md border border-dashed border-gray-300">
+                    <span class="text-sm text-gray-500">No custom variants. Standard price applies.</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button type="submit" [disabled]="productForm.invalid" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-espresso-900 text-base font-medium text-white hover:bg-espresso-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-caramel-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+              {{ isEditMode ? 'Save Changes' : 'Create Pastry' }}
+            </button>
+            <button type="button" (click)="closeModal()" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-caramel-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
