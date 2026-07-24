@@ -1,20 +1,29 @@
 <div class="flex h-screen bg-gray-50 overflow-hidden font-sans">
+  <!-- Mobile Sidebar Overlay -->
+  <div *ngIf="isSidebarOpen" class="fixed inset-0 z-40 bg-gray-900/80 md:hidden backdrop-blur-sm transition-opacity" (click)="toggleSidebar()"></div>
+
   <!-- Sidebar -->
-  <aside class="w-64 bg-espresso-900 text-white flex flex-col hidden md:flex shrink-0">
-    <div class="h-16 flex items-center justify-center gap-3 border-b border-espresso-800">
-      <img src="/logo.png" alt="Logo" class="w-8 h-8 rounded-full border border-cream-50/30 object-cover bg-white">
-      <span class="text-xl font-serif tracking-widest uppercase text-cream-50">MQ Admin</span>
+  <aside [ngClass]="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-64 bg-espresso-900 text-white flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 shrink-0 shadow-2xl md:shadow-none">
+    <div class="h-16 flex items-center justify-between px-6 border-b border-espresso-800">
+      <div class="flex items-center gap-3">
+        <img src="/logo.png" alt="Logo" class="w-8 h-8 rounded-full border border-cream-50/30 object-cover bg-white">
+        <span class="text-xl font-serif tracking-widest uppercase text-cream-50">MQ Admin</span>
+      </div>
+      <!-- Close button for mobile -->
+      <button (click)="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white focus:outline-none">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
     </div>
     <nav class="flex-1 overflow-y-auto py-4">
       <ul class="space-y-1">
         <li>
-          <a routerLink="/overview" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" class="flex items-center px-6 py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent">
+          <a routerLink="/overview" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center px-6 py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent">
             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
             Overview
           </a>
         </li>
         <li>
-          <a routerLink="/products" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" class="flex items-center px-6 py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent">
+          <a routerLink="/products" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center px-6 py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent">
             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
             Products
           </a>
@@ -40,7 +49,7 @@
     <!-- Header -->
     <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
       <div class="flex items-center md:hidden gap-3">
-        <button class="text-gray-500 focus:outline-none">
+        <button (click)="toggleSidebar()" class="text-gray-500 hover:text-espresso-900 focus:outline-none transition-colors">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
         <img src="/logo.png" alt="Logo" class="w-8 h-8 rounded-full border border-gray-200 object-cover bg-white">
