@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+    import { environment } from '../../../environments/environment';
 
 declare global {
   interface Window {
@@ -136,7 +137,8 @@ export class Login implements AfterViewInit {
       setTimeout(() => { 
         try {
           this.turnstileWidgetId = window.turnstile.render('#turnstile-container', {
-            sitekey: '1x00000000000000000000AA', // Dummy sitekey for testing
+
+            sitekey: (environment as any).turnstileSiteKey, // Dummy sitekey for testing
             callback: (token: string) => {
               this.captchaToken = token;
               this.cdr.detectChanges();
