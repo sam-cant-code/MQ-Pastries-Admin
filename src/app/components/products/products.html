@@ -12,12 +12,33 @@
     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-caramel-500"></div>
   </div>
 
+  <!-- Search and Filter Bar -->
+  <div *ngIf="!isLoading()" class="mb-6 flex flex-col sm:flex-row gap-4">
+    <div class="flex-1">
+      <input 
+        type="text" 
+        [ngModel]="searchQuery()" 
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Search pastries by name or description..." 
+        class="w-full focus:ring-caramel-500 focus:border-caramel-500 shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border">
+    </div>
+    <div class="sm:w-48">
+      <select 
+        [ngModel]="selectedCategory()"
+        (ngModelChange)="selectedCategory.set($event)"
+        class="w-full focus:ring-caramel-500 focus:border-caramel-500 shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border bg-white">
+        <option value="">All Categories</option>
+        <option *ngFor="let cat of categories()" [value]="cat">{{ cat }}</option>
+      </select>
+    </div>
+  </div>
+
   <!-- Mobile Cards View -->
   <div *ngIf="!isLoading()" class="md:hidden grid grid-cols-1 gap-4">
-    <div *ngIf="products().length === 0" class="bg-white rounded-md p-6 text-center text-gray-500 shadow-sm border border-gray-100">
-      No products found. Click "+ Add Pastry" to create one.
+    <div *ngIf="filteredProducts().length === 0" class="bg-white rounded-md p-6 text-center text-gray-500 shadow-sm border border-gray-100">
+      No products found.
     </div>
-    <div *ngFor="let product of products()" class="bg-white rounded-md shadow-sm border border-gray-100 p-4 flex flex-col gap-3 relative">
+    <div *ngFor="let product of filteredProducts()" (click)="openModal(product)" class="bg-white rounded-md shadow-sm border border-gray-100 p-4 flex flex-col gap-3 relative cursor-pointer hover:bg-gray-50 transition-colors">
       <div class="flex items-center gap-4">
         <div class="h-16 w-16 rounded-sm overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
           <img *ngIf="product.image" [src]="product.image" alt="" class="h-full w-full object-cover">
@@ -36,8 +57,7 @@
           ₹{{ product.price }} <span class="text-xs text-gray-500 font-normal">{{ product.unit }}</span>
         </div>
         <div class="flex space-x-4 text-sm font-medium">
-          <button (click)="openModal(product)" class="text-caramel-600 hover:text-caramel-900 bg-caramel-50 px-3 py-1 rounded">Edit</button>
-          <button (click)="deleteProduct(product.id!)" class="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded">Delete</button>
+          <button (click)="deleteProduct($event, product.id!)" class="text-red-600 hover:text-red-900 bg-red-50 px-3 py-1 rounded">Delete</button>
         </div>
       </div>
     </div>
@@ -56,12 +76,12 @@
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        <tr *ngIf="products().length === 0">
+        <tr *ngIf="filteredProducts().length === 0">
           <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-            No products found. Click "Add Pastry" to create one.
+            No products found.
           </td>
         </tr>
-        <tr *ngFor="let product of products()">
+        <tr *ngFor="let product of filteredProducts()" (click)="openModal(product)" class="cursor-pointer hover:bg-gray-50 transition-colors">
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="h-10 w-10 rounded-sm overflow-hidden bg-gray-100 flex items-center justify-center">
               <img *ngIf="product.image" [src]="product.image" alt="" class="h-full w-full object-cover">
@@ -81,8 +101,7 @@
             ₹{{ product.price }} <span class="text-xs text-gray-500">{{ product.unit }}</span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-            <button (click)="openModal(product)" class="text-caramel-600 hover:text-caramel-900">Edit</button>
-            <button (click)="deleteProduct(product.id!)" class="text-red-600 hover:text-red-900">Delete</button>
+            <button (click)="deleteProduct($event, product.id!)" class="text-red-600 hover:text-red-900">Delete</button>
           </td>
         </tr>
       </tbody>

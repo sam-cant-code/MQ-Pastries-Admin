@@ -1,12 +1,11 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProductService, Product } from '../../services/product.service';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './products.html',
   styleUrl: './products.css',
 })
@@ -16,6 +15,47 @@ export class Products implements OnInit {
 
   products = signal<Product[]>([]);
   isLoading = signal(true);
+
+  // Search, Filter, and Sorting state
+  searchQuery = signal('');
+  selectedCategory = signal('');
+  lastEditedId = signal<string | null>(null);
+
+  categories = computed(() => {
+    const cats = new Set(this.products().map(p => p.category).filter(Boolean));
+    return Array.from(cats).sort();
+  });
+
+  filteredProducts = computed(() => {
+    let result = [...this.products()];
+    
+    // Sort recently edited to top
+    const editId = this.lastEditedId();
+    if (editId) {
+      const idx = result.findIndex(p => p.id === editId);
+      if (idx > 0) {
+        const edited = result.splice(idx, 1)[0];
+        result.unshift(edited);
+      }
+    }
+
+    // Filter by search
+    const query = this.searchQuery().toLowerCase().trim();
+    if (query) {
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        (p.description && p.description.toLowerCase().includes(query))
+      );
+    }
+
+    // Filter by category
+    const cat = this.selectedCategory();
+    if (cat) {
+      result = result.filter(p => p.category === cat);
+    }
+
+    return result;
+  });
 
   // Modal state
   isModalOpen = false;
@@ -115,6 +155,7 @@ export class Products implements OnInit {
     if (this.isEditMode && this.editingId) {
       this.productService.updateProduct(this.editingId, productData).subscribe({
         next: () => {
+          this.lastEditedId.set(this.editingId);
           this.loadProducts();
           this.closeModal();
         },
@@ -131,10 +172,14 @@ export class Products implements OnInit {
     }
   }
 
-  deleteProduct(id: string) {
+  deleteProduct(event: Event, id: string) {
+    event.stopPropagation();
     if (confirm('Are you sure you want to delete this product?')) {
       this.productService.deleteProduct(id).subscribe({
-        next: () => this.loadProducts(),
+        next: () => {
+          if (this.lastEditedId() === id) this.lastEditedId.set(null);
+          this.loadProducts();
+        },
         error: (err) => console.error(err)
       });
     }
