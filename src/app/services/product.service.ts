@@ -15,6 +15,8 @@ export interface Product {
   galleryImages?: string[];
   hasEgglessOption?: boolean;
   variants?: { name: string; price: number }[];
+  status?: string;
+  sortOrder?: number;
 }
 
 @Injectable({
@@ -27,6 +29,10 @@ export class ProductService {
 
   getProducts(): Observable<Product[]> {
     return this.http.get<Product[]>(this.publicUrl);
+  }
+
+  getGroupsByCategory(category: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.adminUrl}/groups?category=${encodeURIComponent(category)}`);
   }
 
   uploadImage(file: File): Observable<{url: string}> {

@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProductService, Product } from '../../services/product.service';
+import { CategoryService, Category } from '../../services/category.service';
 
 @Component({
   selector: 'app-products',
@@ -12,6 +13,7 @@ import { ProductService, Product } from '../../services/product.service';
 })
 export class Products implements OnInit {
   private productService = inject(ProductService);
+  private categoryService = inject(CategoryService);
   private fb = inject(FormBuilder);
 
   products = signal<Product[]>([]);
@@ -22,10 +24,9 @@ export class Products implements OnInit {
   selectedCategory = signal('');
   lastEditedId = signal<string | null>(null);
 
-  categories = computed(() => {
-    const cats = new Set(this.products().map(p => p.category).filter(Boolean));
-    return Array.from(cats).sort();
-  });
+  // We will fetch actual categories from DB
+  dbCategories = signal<Category[]>([]);
+  productGroups = signal<string[]>([]);
 
   filteredProducts = computed(() => {
     let result = [...this.products()];
@@ -80,7 +81,19 @@ export class Products implements OnInit {
       groupName: [''],
       galleryImages: [[]],
       hasEgglessOption: [false],
+      status: ['Draft'],
+      sortOrder: [0],
       variants: this.fb.array([])
+    });
+
+    this.productForm.get('category')?.valueChanges.subscribe(category => {
+      if (category) {
+        this.productService.getGroupsByCategory(category).subscribe(groups => {
+          this.productGroups.set(groups);
+        });
+      } else {
+        this.productGroups.set([]);
+      }
     });
   }
 
@@ -101,6 +114,13 @@ export class Products implements OnInit {
 
   ngOnInit() {
     this.loadProducts();
+    this.loadCategories();
+  }
+
+  loadCategories() {
+    this.categoryService.getCategories().subscribe(cats => {
+      this.dbCategories.set(cats);
+    });
   }
 
   loadProducts() {
@@ -140,7 +160,7 @@ export class Products implements OnInit {
     } else {
       this.isEditMode = false;
       this.editingId = null;
-      this.productForm.reset({ price: 0, galleryImages: [], hasEgglessOption: false });
+      this.productForm.reset({ price: 0, galleryImages: [], hasEgglessOption: false, status: 'Draft', sortOrder: 0 });
     }
   }
 
