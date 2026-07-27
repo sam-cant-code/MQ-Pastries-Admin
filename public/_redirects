@@ -1,2 +1,2 @@
-/api/* http://18.60.222.78:8080/api/:splat 200!
+/api/* https://18.60.222.78.nip.io/api/:splat 200!
 /* /index.html 200
