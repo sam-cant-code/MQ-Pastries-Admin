@@ -65,10 +65,23 @@ export class Products implements OnInit {
   editingId: string | null = null;
   isUploadingImage = signal(false);
   isDragOver = false;
+
+  // Collapsible section state (Images & Options collapse by default to keep
+  // the modal short; they auto-expand in edit mode when they already hold data)
+  isImagesSectionOpen = signal(false);
+  isOptionsSectionOpen = signal(false);
   
   productForm: FormGroup;
 
   isUploadingGalleryImage = signal(false);
+
+  // Local draft recovery: if the modal gets closed (accidental click on the
+  // backdrop, Cancel, browser back, etc.) without saving, we snapshot the
+  // form to localStorage and offer to restore it next time that same
+  // create/edit modal is opened. A successful save clears the draft.
+  private static readonly DRAFT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+  draftAvailable = signal(false);
+  private pendingDraft: { formValue: any; savedAt: number } | null = null;
 
   constructor() {
     this.productForm = this.fb.group({
@@ -110,6 +123,75 @@ export class Products implements OnInit {
 
   removeVariant(index: number) {
     this.variantsArray.removeAt(index);
+  }
+
+  toggleImagesSection() {
+    this.isImagesSectionOpen.update(v => !v);
+  }
+
+  toggleOptionsSection() {
+    this.isOptionsSectionOpen.update(v => !v);
+  }
+
+  private getDraftKey(): string {
+    return this.editingId ? `mq_product_draft_edit_${this.editingId}` : 'mq_product_draft_new';
+  }
+
+  private checkForDraft() {
+    this.draftAvailable.set(false);
+    this.pendingDraft = null;
+
+    const key = this.getDraftKey();
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+      const isExpired = !parsed.savedAt || (Date.now() - parsed.savedAt) > Products.DRAFT_TTL_MS;
+      if (isExpired) {
+        localStorage.removeItem(key);
+        return;
+      }
+      this.pendingDraft = parsed;
+      this.draftAvailable.set(true);
+    } catch {
+      localStorage.removeItem(key);
+    }
+  }
+
+  restoreDraft() {
+    if (!this.pendingDraft) return;
+    const draft = this.pendingDraft.formValue;
+
+    this.variantsArray.clear();
+    (draft.variants || []).forEach((v: { name: string; price: number }) => {
+      this.variantsArray.push(this.fb.group({
+        name: [v.name, Validators.required],
+        price: [v.price, [Validators.required, Validators.min(0)]]
+      }));
+    });
+
+    this.productForm.patchValue(draft);
+    this.draftAvailable.set(false);
+    this.pendingDraft = null;
+  }
+
+  discardDraft() {
+    localStorage.removeItem(this.getDraftKey());
+    this.draftAvailable.set(false);
+    this.pendingDraft = null;
+  }
+
+  private saveDraft() {
+    if (!this.productForm.dirty) return;
+    try {
+      localStorage.setItem(this.getDraftKey(), JSON.stringify({
+        formValue: this.productForm.value,
+        savedAt: Date.now()
+      }));
+    } catch (e) {
+      console.error('Failed to save product draft', e);
+    }
   }
 
   ngOnInit() {
@@ -157,15 +239,43 @@ export class Products implements OnInit {
         ...product,
         galleryImages: product.galleryImages || []
       });
+
+      // Auto-expand sections that already hold meaningful data so editors
+      // see what's there at a glance, while still starting collapsed for
+      // brand-new products where there's nothing to review yet.
+      const hasGallery = !!(product.galleryImages && product.galleryImages.length > 0);
+      this.isImagesSectionOpen.set(!!product.image || hasGallery);
+      this.isOptionsSectionOpen.set(
+        !!product.hasEgglessOption || (!!product.status && product.status !== 'Draft')
+      );
     } else {
       this.isEditMode = false;
       this.editingId = null;
       this.productForm.reset({ price: 0, galleryImages: [], hasEgglessOption: false, status: 'Draft', sortOrder: 0 });
+      this.isImagesSectionOpen.set(false);
+      this.isOptionsSectionOpen.set(false);
     }
+
+    // editingId is now set correctly for this session, so the draft key
+    // will point at the right bucket (new-product vs. this specific product).
+    this.checkForDraft();
   }
 
-  closeModal() {
+  /**
+   * Closes the modal. By default, any unsaved changes are snapshotted to
+   * localStorage so they can be offered back next time this modal opens.
+   * Pass discardDraft=true after a successful save, since there's nothing
+   * left to recover.
+   */
+  closeModal(discardDraft: boolean = false) {
+    if (discardDraft) {
+      localStorage.removeItem(this.getDraftKey());
+    } else {
+      this.saveDraft();
+    }
     this.isModalOpen = false;
+    this.draftAvailable.set(false);
+    this.pendingDraft = null;
   }
 
   onSubmit() {
@@ -178,7 +288,7 @@ export class Products implements OnInit {
         next: () => {
           this.lastEditedId.set(this.editingId);
           this.loadProducts();
-          this.closeModal();
+          this.closeModal(true);
         },
         error: (err) => console.error(err)
       });
@@ -186,7 +296,7 @@ export class Products implements OnInit {
       this.productService.createProduct(productData).subscribe({
         next: () => {
           this.loadProducts();
-          this.closeModal();
+          this.closeModal(true);
         },
         error: (err) => console.error(err)
       });

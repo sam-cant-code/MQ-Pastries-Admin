@@ -128,46 +128,69 @@
       <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
       <!-- Modal panel -->
-      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+      <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
         <form [formGroup]="productForm" (ngSubmit)="onSubmit()" (paste)="onPaste($event)">
           <div class="bg-gray-50 px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-gray-200">
             <h3 class="text-xl leading-6 font-medium text-gray-900 font-serif" id="modal-title">
               {{ isEditMode ? 'Edit Product' : 'Add New Product' }}
             </h3>
           </div>
-          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[70vh] overflow-y-auto">
-            <div class="space-y-8">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[75vh] overflow-y-auto">
+
+            <!-- Unsaved Draft Banner -->
+            <div *ngIf="draftAvailable()" class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-caramel-50 border border-caramel-200 rounded-md px-4 py-3">
+              <div class="flex items-start gap-2">
+                <svg class="h-5 w-5 text-caramel-600 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm text-caramel-800">
+                  You have unsaved changes from an earlier session. Restore them?
+                </p>
+              </div>
+              <div class="flex gap-2 shrink-0">
+                <button type="button" (click)="restoreDraft()" class="text-xs font-medium text-white bg-caramel-600 hover:bg-caramel-700 px-3 py-1.5 rounded transition-colors">
+                  Restore
+                </button>
+                <button type="button" (click)="discardDraft()" class="text-xs font-medium text-gray-600 hover:text-gray-800 bg-white px-3 py-1.5 rounded border border-gray-300 transition-colors">
+                  Discard
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-6">
               
               <!-- Basic Information Section -->
               <div>
                 <h4 class="text-md font-bold text-gray-900 border-b border-gray-200 pb-2 mb-4">Basic Information</h4>
-                <div class="space-y-4">
-                  <!-- Name -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700">Product Name</label>
-                    <input type="text" formControlName="name" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border">
-                  </div>
-                  <!-- Category & Product Group -->
-                  <div class="flex gap-4">
-                    <div class="flex-1">
-                      <label class="block text-sm font-medium text-gray-700">Category</label>
-                      <select formControlName="category" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border bg-white">
-                        <option value="">Select Category</option>
-                        <option *ngFor="let cat of dbCategories()" [value]="cat.name">{{ cat.name }}</option>
-                      </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div class="space-y-4">
+                    <!-- Name -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Product Name</label>
+                      <input type="text" formControlName="name" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border">
                     </div>
-                    <div class="flex-1">
-                      <label class="block text-sm font-medium text-gray-700">Product Group</label>
-                      <input type="text" formControlName="groupName" list="groupNamesList" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border" placeholder="Select or create group">
-                      <datalist id="groupNamesList">
-                        <option *ngFor="let group of productGroups()" [value]="group"></option>
-                      </datalist>
+                    <!-- Category & Product Group -->
+                    <div class="flex gap-4">
+                      <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">Category</label>
+                        <select formControlName="category" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border bg-white">
+                          <option value="">Select Category</option>
+                          <option *ngFor="let cat of dbCategories()" [value]="cat.name">{{ cat.name }}</option>
+                        </select>
+                      </div>
+                      <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">Product Group</label>
+                        <input type="text" formControlName="groupName" list="groupNamesList" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border" placeholder="Select or create group">
+                        <datalist id="groupNamesList">
+                          <option *ngFor="let group of productGroups()" [value]="group"></option>
+                        </datalist>
+                      </div>
                     </div>
                   </div>
                   <!-- Description -->
-                  <div>
+                  <div class="flex flex-col">
                     <label class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea formControlName="description" rows="5" class="mt-1 focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border"></textarea>
+                    <textarea formControlName="description" class="mt-1 flex-1 min-h-[120px] focus:ring-caramel-500 focus:border-caramel-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md p-2 border resize-none"></textarea>
                   </div>
                 </div>
               </div>
@@ -217,10 +240,22 @@
                 </div>
               </div>
 
-              <!-- Images Section -->
-              <div>
-                <h4 class="text-md font-bold text-gray-900 border-b border-gray-200 pb-2 mb-4">Images</h4>
-                <div class="space-y-6">
+              <!-- Images Section (collapsible) -->
+              <div class="border border-gray-200 rounded-md overflow-hidden">
+                <button
+                  type="button"
+                  (click)="toggleImagesSection()"
+                  class="w-full flex justify-between items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left">
+                  <span class="text-md font-bold text-gray-900">Images</span>
+                  <div class="flex items-center gap-2">
+                    <span *ngIf="!isImagesSectionOpen() && productForm.get('image')?.value" class="text-xs text-gray-500">Cover set</span>
+                    <svg [ngClass]="{'rotate-180': isImagesSectionOpen()}" class="h-4 w-4 text-gray-500 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
+
+                <div *ngIf="isImagesSectionOpen()" class="p-4 space-y-6">
                   <!-- Cover Image -->
                   <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Cover Image</label>
@@ -288,11 +323,22 @@
                 </div>
               </div>
 
-              <!-- Options Section -->
-              <div>
-                <h4 class="text-md font-bold text-gray-900 border-b border-gray-200 pb-2 mb-4">Options</h4>
-                
-                <div class="space-y-4">
+              <!-- Options Section (collapsible) -->
+              <div class="border border-gray-200 rounded-md overflow-hidden">
+                <button
+                  type="button"
+                  (click)="toggleOptionsSection()"
+                  class="w-full flex justify-between items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left">
+                  <span class="text-md font-bold text-gray-900">Publishing & Options</span>
+                  <div class="flex items-center gap-2">
+                    <span *ngIf="!isOptionsSectionOpen()" class="text-xs text-gray-500">{{ productForm.get('status')?.value || 'Draft' }}</span>
+                    <svg [ngClass]="{'rotate-180': isOptionsSectionOpen()}" class="h-4 w-4 text-gray-500 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
+
+                <div *ngIf="isOptionsSectionOpen()" class="p-4 space-y-4">
                   <!-- Status -->
                   <div class="flex gap-4 items-center">
                     <div class="w-1/2">
