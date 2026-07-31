@@ -5,6 +5,7 @@ import { DashboardLayout } from './components/dashboard-layout/dashboard-layout'
 import { Overview } from './components/overview/overview';
 import { Products } from './components/products/products';
 import { CategoriesComponent } from './components/categories/categories';
+import { OrdersComponent } from './components/orders/orders';
 import { authGuard } from './guards/auth.guard';
 import { unauthGuard } from './guards/unauth.guard';
 
@@ -27,6 +28,7 @@ export const routes: Routes = [
       { path: 'overview', component: Overview },
       { path: 'products', component: Products },
       { path: 'categories', component: CategoriesComponent },
+      { path: 'orders', component: OrdersComponent },
       { path: '', redirectTo: 'overview', pathMatch: 'full' }
     ]
   },

@@ -1,0 +1,144 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-900 font-serif">Customer Orders</h1>
+    <button (click)="loadOrders()" class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-caramel-500">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+      Refresh
+    </button>
+  </div>
+
+  <div *ngIf="isLoading()" class="flex justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-espresso-900"></div>
+  </div>
+
+  <div *ngIf="error()" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
+    {{ error() }}
+  </div>
+
+  <!-- Orders Table -->
+  <div *ngIf="!isLoading() && !error() && orders().length > 0" class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let order of orders()">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <span class="font-mono">{{ order.id.substring(0, 8) }}...</span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ order.customerName }}</div>
+              <div class="text-sm text-gray-500">{{ order.phone }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+              ₹{{ order.totalAmount }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <select (change)="updateStatus(order, $event)" 
+                      class="text-xs font-semibold rounded-full px-2.5 py-1"
+                      [ngClass]="getStatusColor(order.status)">
+                <option *ngFor="let s of statusOptions" [value]="s" [selected]="s === order.status">{{ s }}</option>
+              </select>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              {{ order.createdAt | date:'short' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-3 justify-end items-center h-full">
+              <button *ngIf="['PREPARING', 'PAID'].includes(order.status) && !order.borzoOrderId" (click)="requestDelivery(order)" class="text-xs bg-caramel-600 text-white px-3 py-1.5 rounded-md hover:bg-caramel-700 transition shadow-sm font-semibold">Request Driver</button>
+              <button (click)="viewDetails(order)" class="text-caramel-600 hover:text-caramel-900">View Details</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading() && !error() && orders().length === 0" class="text-center py-12 bg-white rounded-lg border border-gray-200">
+    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+    </svg>
+    <h3 class="mt-2 text-sm font-medium text-gray-900">No orders</h3>
+    <p class="mt-1 text-sm text-gray-500">Waiting for customers to place their first order.</p>
+  </div>
+</div>
+
+<!-- Order Details Modal -->
+<div *ngIf="selectedOrder()" class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" (click)="closeDetails()"></div>
+    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+      <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+        <div class="flex justify-between items-start mb-5">
+          <h3 class="text-lg leading-6 font-bold text-gray-900 font-serif" id="modal-title">
+            Order Details
+          </h3>
+          <button (click)="closeDetails()" class="text-gray-400 hover:text-gray-500">
+            <span class="sr-only">Close</span>
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div class="border-t border-gray-200 py-4 grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Customer</p>
+            <p class="text-sm font-medium text-gray-900 mt-1">{{ selectedOrder()?.customerName }}</p>
+            <p class="text-sm text-gray-600">{{ selectedOrder()?.email }}</p>
+            <p class="text-sm text-gray-600">{{ selectedOrder()?.phone }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Payment & Fulfillment</p>
+            <p class="text-sm text-gray-600 mt-1"><span class="font-medium">Order ID:</span> {{ selectedOrder()?.id }}</p>
+            <p class="text-sm text-gray-600"><span class="font-medium">RZP Order:</span> {{ selectedOrder()?.razorpayOrderId }}</p>
+            <p class="text-sm text-gray-600" *ngIf="selectedOrder()?.razorpayPaymentId"><span class="font-medium">RZP Payment:</span> {{ selectedOrder()?.razorpayPaymentId }}</p>
+            <p class="text-sm text-gray-600" *ngIf="selectedOrder()?.borzoOrderId"><span class="font-medium">Borzo ID:</span> {{ selectedOrder()?.borzoOrderId }}</p>
+          </div>
+          <div class="col-span-2 mt-2">
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Delivery Address</p>
+            <p class="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded border border-gray-100 whitespace-pre-wrap">{{ selectedOrder()?.address }}
+Pincode: {{ selectedOrder()?.pincode }}</p>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <h4 class="text-md font-semibold text-gray-900 mb-3 border-b pb-2">Items Ordered</h4>
+          <ul class="divide-y divide-gray-200 border-b mb-4">
+            <li *ngFor="let item of selectedOrder()?.items" class="py-3 flex justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-900">{{ item.product?.name }}</p>
+                <p class="text-xs text-gray-500 uppercase">{{ item.variantName }} <span class="lowercase">x</span> {{ item.quantity }}</p>
+              </div>
+              <p class="text-sm font-medium text-gray-900">₹{{ item.priceAtPurchase * item.quantity }}</p>
+            </li>
+          </ul>
+          <div class="flex justify-between items-center py-2 px-4 border-b">
+            <span class="text-sm font-medium text-gray-700">Shipping</span>
+            <span class="text-sm font-medium text-gray-900">₹{{ selectedOrder()?.shippingCost || 0 }}</span>
+          </div>
+          <div class="flex justify-between items-center bg-gray-50 p-4 rounded-md mt-2">
+            <span class="text-sm font-bold text-gray-700 uppercase tracking-wider">Total</span>
+            <span class="text-xl font-bold text-espresso-900">₹{{ selectedOrder()?.totalAmount }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-50 px-4 py-3 sm:px-6 flex flex-row-reverse gap-2">
+        <button type="button" (click)="closeDetails()" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-espresso-500 sm:w-auto sm:text-sm">
+          Close
+        </button>
+        <button *ngIf="['PREPARING', 'PAID'].includes(selectedOrder()?.status || '') && !selectedOrder()?.borzoOrderId" type="button" (click)="requestDelivery(selectedOrder()!)" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-caramel-600 text-base font-medium text-white hover:bg-caramel-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-caramel-500 sm:w-auto sm:text-sm">
+          Request Delivery (Borzo)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
