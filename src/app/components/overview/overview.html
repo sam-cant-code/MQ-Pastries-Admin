@@ -1,4 +1,8 @@
-<div>
+<div *ngIf="loading" class="flex justify-center items-center py-32">
+  <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-caramel-500"></div>
+</div>
+
+<div *ngIf="!loading" class="animate-fade-in">
   <h1 class="text-2xl font-bold text-gray-900 mb-6 font-serif">Overview</h1>
   
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -6,36 +10,33 @@
     <div class="bg-white rounded-md shadow-sm border border-gray-100 p-6">
       <div class="flex items-center justify-between">
         <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Orders</h3>
-        <span class="text-green-500 flex items-center text-sm font-semibold">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-          12%
-        </span>
+        <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center">
+          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+        </div>
       </div>
-      <p class="mt-2 text-3xl font-bold text-gray-900">142</p>
+      <p class="mt-4 text-3xl font-bold text-gray-900">{{ totalOrders }}</p>
     </div>
     
     <!-- Stat 2 -->
     <div class="bg-white rounded-md shadow-sm border border-gray-100 p-6">
       <div class="flex items-center justify-between">
-        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Revenue</h3>
-        <span class="text-green-500 flex items-center text-sm font-semibold">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-          8.5%
-        </span>
+        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Revenue</h3>
+        <div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center">
+          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
       </div>
-      <p class="mt-2 text-3xl font-bold text-gray-900">$3,429</p>
+      <p class="mt-4 text-3xl font-bold text-gray-900">₹{{ totalRevenue | number:'1.2-2' }}</p>
     </div>
     
     <!-- Stat 3 -->
     <div class="bg-white rounded-md shadow-sm border border-gray-100 p-6">
       <div class="flex items-center justify-between">
         <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider">Active Pastries</h3>
-        <span class="text-gray-400 flex items-center text-sm font-semibold">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-          0%
-        </span>
+        <div class="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center">
+          <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+        </div>
       </div>
-      <p class="mt-2 text-3xl font-bold text-gray-900">24</p>
+      <p class="mt-4 text-3xl font-bold text-gray-900">{{ activePastries }}</p>
     </div>
   </div>
 
@@ -43,41 +44,38 @@
     <div class="px-6 py-5 border-b border-gray-200">
       <h3 class="text-lg font-medium text-gray-900 font-serif">Recent Orders</h3>
     </div>
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        <tr>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">#ORD-092</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sarah Jenkins</td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Processing</span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$42.50</td>
-        </tr>
-        <tr>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">#ORD-091</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Michael Chen</td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$18.00</td>
-        </tr>
-        <tr>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">#ORD-090</td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Emma Watson</td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$64.00</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let order of recentOrders" class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">#{{ order.id.substring(0, 8) | uppercase }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.customerName }}</td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                    [ngClass]="{
+                      'bg-yellow-100 text-yellow-800': order.status === 'PENDING' || order.status === 'PREPARING',
+                      'bg-blue-100 text-blue-800': order.status === 'PAID' || order.status === 'OUT_FOR_DELIVERY',
+                      'bg-green-100 text-green-800': order.status === 'DELIVERED',
+                      'bg-gray-100 text-gray-800': !order.status
+                    }">
+                {{ order.status || 'UNKNOWN' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">₹{{ order.totalAmount | number:'1.2-2' }}</td>
+          </tr>
+          <tr *ngIf="recentOrders.length === 0">
+            <td colspan="4" class="px-6 py-8 text-center text-gray-500">No orders found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
