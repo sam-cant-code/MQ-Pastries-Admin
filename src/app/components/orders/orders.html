@@ -52,7 +52,7 @@
               {{ order.createdAt | date:'short' }}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-3 justify-end items-center h-full">
-              <button *ngIf="['PREPARING', 'PAID'].includes(order.status) && !order.borzoOrderId" (click)="requestDelivery(order)" class="text-xs bg-caramel-600 text-white px-3 py-1.5 rounded-md hover:bg-caramel-700 transition shadow-sm font-semibold">Request Driver</button>
+              <button *ngIf="['PREPARING', 'PAID'].includes(order.status) && !order.borzoOrderId && !order.isPickup" (click)="requestDelivery(order)" class="text-xs bg-caramel-600 text-white px-3 py-1.5 rounded-md hover:bg-caramel-700 transition shadow-sm font-semibold">Request Driver</button>
               <button (click)="viewDetails(order)" class="text-caramel-600 hover:text-caramel-900">View Details</button>
             </td>
           </tr>
@@ -104,9 +104,11 @@
             <p class="text-sm text-gray-600" *ngIf="selectedOrder()?.borzoOrderId"><span class="font-medium">Borzo ID:</span> {{ selectedOrder()?.borzoOrderId }}</p>
           </div>
           <div class="col-span-2 mt-2">
-            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Delivery Address</p>
-            <p class="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded border border-gray-100 whitespace-pre-wrap">{{ selectedOrder()?.address }}
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider" *ngIf="!selectedOrder()?.isPickup">Delivery Address</p>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider" *ngIf="selectedOrder()?.isPickup">Store Pickup</p>
+            <p class="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded border border-gray-100 whitespace-pre-wrap" *ngIf="!selectedOrder()?.isPickup">{{ selectedOrder()?.address }}
 Pincode: {{ selectedOrder()?.pincode }}</p>
+            <p class="text-sm text-gray-900 mt-1 p-3 bg-gray-50 rounded border border-gray-100 font-semibold" *ngIf="selectedOrder()?.isPickup">Customer will pick up at store.</p>
           </div>
         </div>
 
@@ -135,7 +137,7 @@ Pincode: {{ selectedOrder()?.pincode }}</p>
         <button type="button" (click)="closeDetails()" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-espresso-500 sm:w-auto sm:text-sm">
           Close
         </button>
-        <button *ngIf="['PREPARING', 'PAID'].includes(selectedOrder()?.status || '') && !selectedOrder()?.borzoOrderId" type="button" (click)="requestDelivery(selectedOrder()!)" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-caramel-600 text-base font-medium text-white hover:bg-caramel-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-caramel-500 sm:w-auto sm:text-sm">
+        <button *ngIf="['PREPARING', 'PAID'].includes(selectedOrder()?.status || '') && !selectedOrder()?.borzoOrderId && !selectedOrder()?.isPickup" type="button" (click)="requestDelivery(selectedOrder()!)" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-caramel-600 text-base font-medium text-white hover:bg-caramel-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-caramel-500 sm:w-auto sm:text-sm">
           Request Delivery (Borzo)
         </button>
       </div>

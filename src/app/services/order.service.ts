@@ -18,6 +18,7 @@ export interface Order {
   phone: string;
   address: string;
   pincode: string;
+  isPickup: boolean;
   totalAmount: number;
   shippingCost: number;
   status: string;
