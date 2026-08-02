@@ -18,6 +18,14 @@ export class OrdersComponent implements OnInit {
 
   statusOptions = ['PENDING', 'PAID', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'FAILED', 'DELIVERED'];
 
+  getAvailableStatuses(order: Order): string[] {
+    if (order.isPickup) {
+      return ['PENDING', 'PAID', 'PREPARING', 'READY_FOR_PICKUP', 'DELIVERED', 'FAILED'];
+    } else {
+      return ['PENDING', 'PAID', 'PREPARING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'];
+    }
+  }
+
   ngOnInit() {
     this.loadOrders();
   }
