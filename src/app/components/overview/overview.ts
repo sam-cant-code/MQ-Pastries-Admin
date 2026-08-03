@@ -37,21 +37,34 @@ export class Overview implements OnInit {
           return of([] as Product[]);
         })
       )
-    }).pipe(
-      finalize(() => this.loading = false)
-    ).subscribe({
+    }).subscribe({
       next: (res) => {
-        const orders = res.orders || [];
-        const products = res.products || [];
+        try {
+          const orders = Array.isArray(res.orders) ? res.orders : [];
+          const products = Array.isArray(res.products) ? res.products : [];
 
-        this.totalOrders = orders.length;
-        this.totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
+          this.totalOrders = orders.length;
+          this.totalRevenue = orders.reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0);
+          
+          this.recentOrders = [...orders].sort((a, b) => {
+            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return timeB - timeA;
+          }).slice(0, 5);
+
+          this.activePastries = products.filter(p => p.status !== 'inactive').length;
+        } catch (e) {
+          console.error('Error parsing overview data:', e);
+        }
         
-        this.recentOrders = [...orders].sort((a, b) => {
-          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-        }).slice(0, 5);
-
-        this.activePastries = products.filter(p => p.status !== 'inactive').length;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error in overview forkJoin:', err);
+        this.loading = false;
+      },
+      complete: () => {
+        this.loading = false;
       }
     });
   }
