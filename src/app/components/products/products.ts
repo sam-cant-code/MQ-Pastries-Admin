@@ -321,13 +321,17 @@ export class Products implements OnInit {
     if (input.files && input.files.length > 0) {
       this.handleImageUpload(input.files[0]);
     }
+    // Reset so the same file (or a new file) can trigger `change` again
+    input.value = '';
   }
   
   onGalleryFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.handleGalleryImageUpload(input.files[0]);
+      this.handleGalleryImageUpload(Array.from(input.files));
     }
+    // Reset so the same file (or a new file) can trigger `change` again
+    input.value = '';
   }
 
   onPaste(event: ClipboardEvent) {
@@ -336,15 +340,26 @@ export class Products implements OnInit {
     const items = event.clipboardData?.items;
     if (!items) return;
 
+    const files: File[] = [];
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf('image') !== -1) {
         const file = items[i].getAsFile();
-        if (file) {
-          this.handleImageUpload(file);
-          event.preventDefault();
-          break;
-        }
+        if (file) files.push(file);
       }
+    }
+
+    if (files.length === 0) return;
+    event.preventDefault();
+
+    const hasCoverImage = !!this.productForm.get('image')?.value;
+
+    if (!hasCoverImage) {
+      this.handleImageUpload(files[0]);
+      if (files.length > 1) {
+        this.handleGalleryImageUpload(files.slice(1));
+      }
+    } else {
+      this.handleGalleryImageUpload(files);
     }
   }
 
@@ -362,18 +377,32 @@ export class Products implements OnInit {
     });
   }
 
-  private handleGalleryImageUpload(file: File) {
+  private handleGalleryImageUpload(files: File[]) {
+    if (!files || files.length === 0) return;
+
     this.isUploadingGalleryImage.set(true);
-    this.productService.uploadImage(file).subscribe({
-      next: (res) => {
-        const currentImages = this.productForm.get('galleryImages')?.value || [];
-        this.productForm.patchValue({ galleryImages: [...currentImages, res.url] });
-        this.isUploadingGalleryImage.set(false);
-      },
-      error: (err) => {
-        console.error('Failed to upload gallery image', err);
-        this.isUploadingGalleryImage.set(false);
-      }
+    let completed = 0;
+
+    files.forEach(file => {
+      this.productService.uploadImage(file).subscribe({
+        next: (res) => {
+          const currentImages = this.productForm.get('galleryImages')?.value || [];
+          this.productForm.patchValue({ galleryImages: [...currentImages, res.url] });
+          this.productForm.get('galleryImages')?.markAsDirty();
+          
+          completed++;
+          if (completed === files.length) {
+            this.isUploadingGalleryImage.set(false);
+          }
+        },
+        error: (err) => {
+          console.error('Failed to upload gallery image', err);
+          completed++;
+          if (completed === files.length) {
+            this.isUploadingGalleryImage.set(false);
+          }
+        }
+      });
     });
   }
 

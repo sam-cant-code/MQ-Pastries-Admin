@@ -26,6 +26,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: HttpErrorResponse) => {
       // Handle 401 Unauthorized globally
       if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/refresh')) {
+        // Prevent infinite retry loop: if this request was already retried
+        // after a token refresh, don't attempt another refresh cycle.
+        if (req.headers.has('X-Retry-After-Refresh')) {
+          authService.logout();
+          router.navigate(['/login']);
+          return throwError(() => error);
+        }
+
         const refreshToken = authService.getRefreshToken();
         
         if (refreshToken) {
@@ -37,10 +45,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
                  localStorage.setItem('refresh_token', response.refreshToken);
               }
               
-              // Retry the original failed request with the new token
+              // Retry the original failed request with the new token,
+              // marked so we don't retry again if it still fails.
               const clonedRequest = req.clone({
                 setHeaders: {
-                  Authorization: `Bearer ${response.accessToken}`
+                  Authorization: `Bearer ${response.accessToken}`,
+                  'X-Retry-After-Refresh': 'true'
                 }
               });
               
