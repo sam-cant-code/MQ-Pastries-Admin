@@ -17,6 +17,7 @@ export interface Product {
   variants?: { name: string; price: number }[];
   status?: string;
   sortOrder?: number;
+  allowCustomMessage?: boolean;
 }
 
 @Injectable({

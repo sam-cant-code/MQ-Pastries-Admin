@@ -94,6 +94,7 @@ export class Products implements OnInit {
       groupName: [''],
       galleryImages: [[]],
       hasEgglessOption: [false],
+      allowCustomMessage: [false],
       status: ['Draft'],
       sortOrder: [0],
       variants: this.fb.array([])
@@ -251,7 +252,7 @@ export class Products implements OnInit {
     } else {
       this.isEditMode = false;
       this.editingId = null;
-      this.productForm.reset({ price: 0, galleryImages: [], hasEgglessOption: false, status: 'Draft', sortOrder: 0 });
+      this.productForm.reset({ price: 0, galleryImages: [], hasEgglessOption: false, allowCustomMessage: false, status: 'Draft', sortOrder: 0 });
       this.isImagesSectionOpen.set(false);
       this.isOptionsSectionOpen.set(false);
     }
