@@ -20,6 +20,7 @@ export class CategoriesComponent implements OnInit {
   isModalOpen = false;
   isEditMode = false;
   editingId: string | null = null;
+  toastMessage = signal<{message: string, type: 'success' | 'error'} | null>(null);
   
   categoryForm: FormGroup;
 
@@ -75,16 +76,24 @@ export class CategoriesComponent implements OnInit {
         next: () => {
           this.loadCategories();
           this.closeModal();
+          this.showToast('Category successfully updated!');
         },
-        error: (err) => console.error(err)
+        error: (err) => {
+          console.error(err);
+          this.showToast('Failed to update category', 'error');
+        }
       });
     } else {
       this.categoryService.createCategory(catData).subscribe({
         next: () => {
           this.loadCategories();
           this.closeModal();
+          this.showToast('Category successfully created!');
         },
-        error: (err) => console.error(err)
+        error: (err) => {
+          console.error(err);
+          this.showToast('Failed to create category', 'error');
+        }
       });
     }
   }
@@ -93,9 +102,22 @@ export class CategoriesComponent implements OnInit {
     event.stopPropagation();
     if (confirm('Are you sure you want to delete this category?')) {
       this.categoryService.deleteCategory(id).subscribe({
-        next: () => this.loadCategories(),
-        error: (err) => console.error(err)
+        next: () => {
+          this.loadCategories();
+          this.showToast('Category successfully deleted!');
+        },
+        error: (err) => {
+          console.error(err);
+          this.showToast('Failed to delete category', 'error');
+        }
       });
     }
+  }
+
+  showToast(message: string, type: 'success' | 'error' = 'success') {
+    this.toastMessage.set({ message, type });
+    setTimeout(() => {
+      this.toastMessage.set(null);
+    }, 3000);
   }
 }

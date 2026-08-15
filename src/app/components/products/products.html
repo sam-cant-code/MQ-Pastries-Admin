@@ -362,7 +362,7 @@
                   <div class="flex items-center mt-3">
                     <input id="allowCustomMessage" type="checkbox" formControlName="allowCustomMessage" class="h-4 w-4 text-caramel-600 focus:ring-caramel-500 border-gray-300 rounded">
                     <label for="allowCustomMessage" class="ml-2 block text-sm font-medium text-gray-900">
-                      Allow Custom Message on Cake
+                      Allow Custom Message
                     </label>
                   </div>
                 </div>
@@ -381,5 +381,29 @@
         </form>
       </div>
     </div>
+  </div>
+
+  <!-- Toast Message -->
+  <div *ngIf="toastMessage()" 
+       class="fixed bottom-4 right-4 z-[60] px-4 py-3 rounded shadow-lg flex items-center gap-3 transition-all duration-300 transform translate-y-0 opacity-100"
+       [ngClass]="{'bg-green-600 text-white': toastMessage()?.type === 'success', 'bg-red-600 text-white': toastMessage()?.type === 'error'}">
+    
+    <!-- Success Icon -->
+    <svg *ngIf="toastMessage()?.type === 'success'" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+    </svg>
+    
+    <!-- Error Icon -->
+    <svg *ngIf="toastMessage()?.type === 'error'" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+    </svg>
+
+    <span class="text-sm font-medium">{{ toastMessage()?.message }}</span>
+    
+    <button (click)="toastMessage.set(null)" class="ml-2 text-white/80 hover:text-white">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
   </div>
 </div>

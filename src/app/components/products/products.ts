@@ -23,6 +23,7 @@ export class Products implements OnInit {
   searchQuery = signal('');
   selectedCategory = signal('');
   lastEditedId = signal<string | null>(null);
+  toastMessage = signal<{message: string, type: 'success' | 'error'} | null>(null);
 
   // We will fetch actual categories from DB
   dbCategories = signal<Category[]>([]);
@@ -290,16 +291,24 @@ export class Products implements OnInit {
           this.lastEditedId.set(this.editingId);
           this.loadProducts();
           this.closeModal(true);
+          this.showToast('Product successfully updated!');
         },
-        error: (err) => console.error(err)
+        error: (err) => {
+          console.error(err);
+          this.showToast('Failed to update product', 'error');
+        }
       });
     } else {
       this.productService.createProduct(productData).subscribe({
         next: () => {
           this.loadProducts();
           this.closeModal(true);
+          this.showToast('Product successfully created!');
         },
-        error: (err) => console.error(err)
+        error: (err) => {
+          console.error(err);
+          this.showToast('Failed to create product', 'error');
+        }
       });
     }
   }
@@ -311,10 +320,21 @@ export class Products implements OnInit {
         next: () => {
           if (this.lastEditedId() === id) this.lastEditedId.set(null);
           this.loadProducts();
+          this.showToast('Product successfully deleted!');
         },
-        error: (err) => console.error(err)
+        error: (err) => {
+          console.error(err);
+          this.showToast(err.error?.message || 'Failed to delete product', 'error');
+        }
       });
     }
+  }
+
+  showToast(message: string, type: 'success' | 'error' = 'success') {
+    this.toastMessage.set({ message, type });
+    setTimeout(() => {
+      this.toastMessage.set(null);
+    }, 3000);
   }
 
   onFileSelected(event: Event) {
