@@ -29,7 +29,7 @@ export class ProductService {
   private adminUrl = `${environment.apiUrl}/admin/products`;
 
   getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>(this.publicUrl);
+    return this.http.get<Product[]>(this.adminUrl);
   }
 
   getGroupsByCategory(category: string): Observable<string[]> {
