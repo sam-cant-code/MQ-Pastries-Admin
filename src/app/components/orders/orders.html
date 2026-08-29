@@ -200,6 +200,7 @@ Pincode: {{ selectedOrder()?.pincode }}</p>
               <div>
                 <p class="text-sm font-medium text-gray-900">{{ item.product?.name }}</p>
                 <p class="text-xs text-gray-500 uppercase">{{ item.variantName }} <span class="lowercase">x</span> {{ item.quantity }}</p>
+                <p *ngIf="item.customMessage" class="text-xs text-caramel-600 italic mt-1">Msg: "{{ item.customMessage }}"</p>
               </div>
               <p class="text-sm font-medium text-gray-900">₹{{ item.priceAtPurchase * item.quantity }}</p>
             </li>

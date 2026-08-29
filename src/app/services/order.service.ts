@@ -8,6 +8,7 @@ export interface OrderItem {
   product: any;
   quantity: number;
   variantName: string;
+  customMessage?: string;
   priceAtPurchase: number;
 }
 

@@ -14,7 +14,9 @@ export interface Product {
   groupName?: string;
   galleryImages?: string[];
   hasEgglessOption?: boolean;
+  hasPackingOption?: boolean;
   variants?: { name: string; price: number }[];
+  packingOptions?: { name: string; image?: string; description?: string }[];
   status?: string;
   sortOrder?: number;
   allowCustomMessage?: boolean;

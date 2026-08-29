@@ -95,10 +95,12 @@ export class Products implements OnInit {
       groupName: [''],
       galleryImages: [[]],
       hasEgglessOption: [false],
+      hasPackingOption: [false],
       allowCustomMessage: [false],
       status: ['Draft'],
       sortOrder: [0],
-      variants: this.fb.array([])
+      variants: this.fb.array([]),
+      packingOptions: this.fb.array([])
     });
 
     this.productForm.get('category')?.valueChanges.subscribe(category => {
@@ -116,6 +118,10 @@ export class Products implements OnInit {
     return this.productForm.get('variants') as import('@angular/forms').FormArray;
   }
 
+  get packingOptionsArray() {
+    return this.productForm.get('packingOptions') as import('@angular/forms').FormArray;
+  }
+
   addVariant() {
     this.variantsArray.push(this.fb.group({
       name: ['', Validators.required],
@@ -125,6 +131,18 @@ export class Products implements OnInit {
 
   removeVariant(index: number) {
     this.variantsArray.removeAt(index);
+  }
+
+  addPackingOption() {
+    this.packingOptionsArray.push(this.fb.group({
+      name: ['', Validators.required],
+      image: [''],
+      description: ['']
+    }));
+  }
+
+  removePackingOption(index: number) {
+    this.packingOptionsArray.removeAt(index);
   }
 
   toggleImagesSection() {
@@ -170,6 +188,15 @@ export class Products implements OnInit {
       this.variantsArray.push(this.fb.group({
         name: [v.name, Validators.required],
         price: [v.price, [Validators.required, Validators.min(0)]]
+      }));
+    });
+
+    this.packingOptionsArray.clear();
+    (draft.packingOptions || []).forEach((p: { name: string; image: string; description: string }) => {
+      this.packingOptionsArray.push(this.fb.group({
+        name: [p.name, Validators.required],
+        image: [p.image || ''],
+        description: [p.description || '']
       }));
     });
 
@@ -224,6 +251,7 @@ export class Products implements OnInit {
   openModal(product?: Product) {
     this.isModalOpen = true;
     this.variantsArray.clear();
+    this.packingOptionsArray.clear();
     if (product) {
       this.isEditMode = true;
       this.editingId = product.id!;
@@ -233,6 +261,16 @@ export class Products implements OnInit {
           this.variantsArray.push(this.fb.group({
             name: [v.name, Validators.required],
             price: [v.price, [Validators.required, Validators.min(0)]]
+          }));
+        });
+      }
+      
+      if (product.packingOptions) {
+        product.packingOptions.forEach(p => {
+          this.packingOptionsArray.push(this.fb.group({
+            name: [p.name, Validators.required],
+            image: [p.image || ''],
+            description: [p.description || '']
           }));
         });
       }
@@ -248,12 +286,12 @@ export class Products implements OnInit {
       const hasGallery = !!(product.galleryImages && product.galleryImages.length > 0);
       this.isImagesSectionOpen.set(!!product.image || hasGallery);
       this.isOptionsSectionOpen.set(
-        !!product.hasEgglessOption || (!!product.status && product.status !== 'Draft')
+        !!product.hasEgglessOption || !!product.hasPackingOption || (!!product.status && product.status !== 'Draft')
       );
     } else {
       this.isEditMode = false;
       this.editingId = null;
-      this.productForm.reset({ price: 0, galleryImages: [], hasEgglessOption: false, allowCustomMessage: false, status: 'Draft', sortOrder: 0 });
+      this.productForm.reset({ price: 0, galleryImages: [], hasEgglessOption: false, hasPackingOption: false, allowCustomMessage: false, status: 'Draft', sortOrder: 0 });
       this.isImagesSectionOpen.set(false);
       this.isOptionsSectionOpen.set(false);
     }
@@ -431,6 +469,71 @@ export class Products implements OnInit {
     const currentImages = [...(this.productForm.get('galleryImages')?.value || [])];
     currentImages.splice(index, 1);
     this.productForm.patchValue({ galleryImages: currentImages });
+  }
+
+  isUploadingPackingImage = signal<Record<number, boolean>>({});
+
+  onPackingImageSelected(event: Event, index: number) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.handlePackingImageUpload(input.files[0], index);
+    }
+    input.value = '';
+  }
+
+  onPackingPaste(event: ClipboardEvent, index: number) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    let file: File | null = null;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        file = items[i].getAsFile();
+        break;
+      }
+    }
+
+    if (file) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.handlePackingImageUpload(file, index);
+    }
+  }
+
+  onPackingDrop(event: DragEvent, index: number) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+    
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      this.handlePackingImageUpload(event.dataTransfer.files[0], index);
+    }
+  }
+
+  private handlePackingImageUpload(file: File, index: number) {
+    this.isUploadingPackingImage.update(state => ({ ...state, [index]: true }));
+    this.productService.uploadImage(file).subscribe({
+      next: (res) => {
+        const control = this.packingOptionsArray.at(index);
+        if (control) {
+          control.patchValue({ image: res.url });
+          control.markAsDirty();
+        }
+        this.isUploadingPackingImage.update(state => ({ ...state, [index]: false }));
+      },
+      error: (err) => {
+        console.error('Failed to upload packing image', err);
+        this.isUploadingPackingImage.update(state => ({ ...state, [index]: false }));
+      }
+    });
+  }
+
+  removePackingImage(index: number) {
+    const control = this.packingOptionsArray.at(index);
+    if (control) {
+      control.patchValue({ image: '' });
+      control.markAsDirty();
+    }
   }
 
   onDragOver(event: DragEvent) {
