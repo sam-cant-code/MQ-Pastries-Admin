@@ -25,7 +25,6 @@ export interface Order {
   status: string;
   razorpayOrderId: string;
   razorpayPaymentId: string;
-  borzoOrderId: string;
   createdAt: string;
   items: OrderItem[];
 }
@@ -43,9 +42,5 @@ export class OrderService {
 
   updateOrderStatus(id: string, status: string): Observable<Order> {
     return this.http.put<Order>(`${this.apiUrl}/${id}/status`, { status });
-  }
-
-  requestDelivery(id: string): Observable<Order> {
-    return this.http.post<Order>(`${this.apiUrl}/${id}/request-delivery`, {});
   }
 }

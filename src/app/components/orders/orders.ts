@@ -200,24 +200,6 @@ export class OrdersComponent implements OnInit {
     });
   }
 
-  requestDelivery(order: Order) {
-    if (confirm('Are you sure you want to request delivery for this order? This will trigger Borzo and update the status.')) {
-      this.orderService.requestDelivery(order.id).subscribe({
-        next: (updatedOrder) => {
-          this.orders.update(orders => orders.map(o => o.id === updatedOrder.id ? updatedOrder : o));
-          if (this.selectedOrder()?.id === updatedOrder.id) {
-            this.selectedOrder.set(updatedOrder);
-          }
-          this.showToast('Delivery requested successfully!');
-        },
-        error: (err) => {
-          console.error('Failed to request delivery', err);
-          this.showToast('Failed to request delivery', 'error');
-        }
-      });
-    }
-  }
-
   showToast(message: string, type: 'success' | 'error' = 'success') {
     this.toastMessage.set({ message, type });
     setTimeout(() => {

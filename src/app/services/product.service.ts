@@ -20,6 +20,7 @@ export interface Product {
   status?: string;
   sortOrder?: number;
   allowCustomMessage?: boolean;
+  isCreamBased?: boolean;
 }
 
 @Injectable({

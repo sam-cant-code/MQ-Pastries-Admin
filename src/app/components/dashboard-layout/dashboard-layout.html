@@ -3,49 +3,53 @@
   <div *ngIf="isSidebarOpen" class="fixed inset-0 z-40 bg-gray-900/80 md:hidden backdrop-blur-sm transition-opacity" (click)="toggleSidebar()"></div>
 
   <!-- Sidebar -->
-  <aside [ngClass]="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-64 bg-espresso-900 text-white flex flex-col transition-transform duration-300 ease-in-out md:relative md:translate-x-0 shrink-0 shadow-2xl md:shadow-none">
-    <div class="h-16 flex items-center justify-between px-6 border-b border-espresso-800">
-      <div class="flex items-center gap-3">
-        <img src="/logo.png" alt="Logo" class="w-8 h-8 rounded-full border border-cream-50/30 object-cover bg-white">
-        <span class="text-xl font-serif tracking-widest uppercase text-cream-50">MQ Admin</span>
+  <aside [ngClass]="[isSidebarOpen ? 'translate-x-0' : '-translate-x-full', isSidebarCollapsed ? 'w-20' : 'w-64']" class="fixed inset-y-0 left-0 z-50 bg-espresso-900 text-white flex flex-col transition-all duration-300 ease-in-out md:relative md:translate-x-0 shrink-0 shadow-2xl md:shadow-none">
+    <div class="h-16 flex items-center border-b border-espresso-800" [ngClass]="isSidebarCollapsed ? 'justify-center' : 'justify-between px-6'">
+      <div class="flex items-center gap-3" [class.cursor-pointer]="isSidebarCollapsed" (click)="isSidebarCollapsed && toggleDesktopSidebar()" [title]="isSidebarCollapsed ? 'Expand Sidebar' : ''">
+        <img src="/logo.png" alt="Logo" class="w-8 h-8 rounded-full border border-cream-50/30 object-cover bg-white shrink-0">
+        <span *ngIf="!isSidebarCollapsed" class="text-xl font-serif tracking-widest uppercase text-cream-50">MQ Admin</span>
       </div>
       <!-- Close button for mobile -->
-      <button (click)="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white focus:outline-none">
+      <button *ngIf="!isSidebarCollapsed" (click)="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white focus:outline-none">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
+      <!-- Desktop Collapse Button -->
+      <button *ngIf="!isSidebarCollapsed" (click)="toggleDesktopSidebar()" class="hidden md:flex text-gray-400 hover:text-white focus:outline-none" title="Collapse Sidebar">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+      </button>
     </div>
-    <nav class="flex-1 overflow-y-auto py-4">
+    <nav class="flex-1 overflow-y-auto py-4 overflow-x-hidden">
       <ul class="space-y-1">
         <li>
-          <a routerLink="/overview" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center px-6 py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            Overview
+          <a routerLink="/overview" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent" [ngClass]="isSidebarCollapsed ? 'px-0 justify-center' : 'px-6'" [title]="isSidebarCollapsed ? 'Overview' : ''">
+            <svg class="w-5 h-5 shrink-0" [ngClass]="isSidebarCollapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span *ngIf="!isSidebarCollapsed">Overview</span>
           </a>
         </li>
         <li>
-          <a routerLink="/products" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center px-6 py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-            Products
+          <a routerLink="/products" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent" [ngClass]="isSidebarCollapsed ? 'px-0 justify-center' : 'px-6'" [title]="isSidebarCollapsed ? 'Products' : ''">
+            <svg class="w-5 h-5 shrink-0" [ngClass]="isSidebarCollapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            <span *ngIf="!isSidebarCollapsed">Products</span>
           </a>
         </li>
         <li>
-          <a routerLink="/categories" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center px-6 py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent pl-12 text-sm">
-            <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-            Categories
+          <a routerLink="/categories" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent text-sm" [ngClass]="isSidebarCollapsed ? 'px-0 justify-center' : 'px-6 pl-12'" [title]="isSidebarCollapsed ? 'Categories' : ''">
+            <svg class="w-4 h-4 shrink-0" [ngClass]="isSidebarCollapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+            <span *ngIf="!isSidebarCollapsed">Categories</span>
           </a>
         </li>
         <li>
-          <a routerLink="/orders" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center px-6 py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent">
-            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            Orders
+          <a routerLink="/orders" routerLinkActive="bg-espresso-800 border-l-4 border-caramel-500 text-white" (click)="isSidebarOpen = false" class="flex items-center py-3 text-cream-100 hover:bg-espresso-800 hover:text-white transition-colors border-l-4 border-transparent" [ngClass]="isSidebarCollapsed ? 'px-0 justify-center' : 'px-6'" [title]="isSidebarCollapsed ? 'Orders' : ''">
+            <svg class="w-5 h-5 shrink-0" [ngClass]="isSidebarCollapsed ? '' : 'mr-3'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span *ngIf="!isSidebarCollapsed">Orders</span>
           </a>
         </li>
       </ul>
     </nav>
-    <div class="p-4 border-t border-espresso-800">
-      <a href="#" (click)="onSignOut($event)" class="flex items-center px-4 py-2 text-sm text-cream-100 hover:text-white">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-        Sign Out
+    <div class="p-4 border-t border-espresso-800 flex flex-col gap-2">
+      <a href="#" (click)="onSignOut($event)" class="flex items-center py-2 text-sm text-cream-100 hover:text-white transition-colors" [ngClass]="isSidebarCollapsed ? 'justify-center' : 'px-4'" [title]="isSidebarCollapsed ? 'Sign Out' : ''">
+        <svg class="w-5 h-5 shrink-0" [ngClass]="isSidebarCollapsed ? '' : 'mr-2'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        <span *ngIf="!isSidebarCollapsed">Sign Out</span>
       </a>
     </div>
   </aside>

@@ -13,9 +13,14 @@ export class DashboardLayout {
   private router = inject(Router);
 
   isSidebarOpen = false;
+  isSidebarCollapsed = false;
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  toggleDesktopSidebar() {
+    this.isSidebarCollapsed = !this.isSidebarCollapsed;
   }
 
   onSignOut(event: Event) {
